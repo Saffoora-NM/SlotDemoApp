@@ -1,0 +1,72 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+parameters:
+  - name: deployToSlot
+    type: boolean
+    default: false
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: buildJob
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    displayName: Publish 
+    inputs:
+      command: 'publish'
+      publishWebProjects: true
+      arguments: '-c Release -o $(Pipeline.Workspace)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Pipeline.Workspace)'
+      artifact: 'code'
+      publishLocation: 'pipeline'
+
+
+- job: deployJob
+  dependsOn: buildJob
+  steps:
+  - checkout: none
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      buildType: 'current'
+      artifactName: 'code'
+      targetPath: '$(Pipeline.Workspace)'
+
+  - task: AzureRmWebAppDeployment@5
+    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, true) }})
+    inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'AZD-RWD-DEV7'
+        appType: 'webAppLinux'
+        WebAppName: 'demo-slot'
+        deployToSlotOrASE: true
+        ResourceGroupName: 'DEVRWDWEBRG7401'
+        SlotName: 'staging'
+        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
+        DeploymentTypeLinux: 'oneDeploy'
+
+
+  - task: AzureRmWebAppDeployment@5
+    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, false) }})
+    inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'AZD-RWD-DEV7'
+        appType: 'webAppLinux'
+        WebAppName: 'demo-slot'
+        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
+        DeploymentTypeLinux: 'oneDeploy'
