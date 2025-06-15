@@ -48,7 +48,7 @@ jobs:
       targetPath: '$(Pipeline.Workspace)'
 
   - task: AzureRmWebAppDeployment@5
-    condition: eq('${{ parameters.deployToSlot }}', true) 
+    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, true) }})
     inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: 'AZD-RWD-DEV7'
@@ -62,7 +62,7 @@ jobs:
 
 
   - task: AzureRmWebAppDeployment@5
-    condition: eq('${{ parameters.deployToSlot }}', false) 
+    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, false) }})
     inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: 'AZD-RWD-DEV7'
