@@ -9,15 +9,35 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- task: AzureRmWebAppDeployment@5
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'AZD-RWD-DEV7'
-    appType: 'webAppLinux'
-    WebAppName: 'demo-slot'
-    deployToSlotOrASE: true
-    ResourceGroupName: 'DEVRWDWEBRG7401'
-    SlotName: 'staging'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    DeploymentTypeLinux: 'oneDeploy'
+jobs:
+- job: buildJob
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: true
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      buildType: 'current'
+      artifactName: 'code'
+      targetPath: '$(Pipeline.Workspace)'
+
+- job: deployJob
+  steps:
+  - task: AzureRmWebAppDeployment@5
+    inputs:
+      ConnectionType: 'AzureRM'
+      azureSubscription: 'AZD-RWD-DEV7'
+      appType: 'webAppLinux'
+      WebAppName: 'demo-slot'
+      deployToSlotOrASE: true
+      ResourceGroupName: 'DEVRWDWEBRG7401'
+      SlotName: 'staging'
+      packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+      DeploymentTypeLinux: 'oneDeploy'
