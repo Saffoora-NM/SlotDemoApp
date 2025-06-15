@@ -29,15 +29,16 @@ jobs:
       artifact: 'code'
       publishLocation: 'pipeline'
 
+
+- job: deployJob
+  dependsOn: buildJob
+  steps:
+  
   - task: DownloadPipelineArtifact@2
     inputs:
       buildType: 'current'
       artifactName: 'code'
       targetPath: '$(Pipeline.Workspace)'
-
-- job: deployJob
-  dependsOn: buildJob
-  steps:
   - task: AzureRmWebAppDeployment@5
     inputs:
       ConnectionType: 'AzureRM'
