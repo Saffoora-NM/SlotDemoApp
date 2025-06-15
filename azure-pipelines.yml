@@ -4,7 +4,12 @@
 # https://aka.ms/yaml
 
 trigger:
-- none
+- main
+
+parameters:
+  - name: deployToSlot
+    type: boolean
+    default: false
 
 pool:
   vmImage: ubuntu-latest
@@ -13,11 +18,13 @@ jobs:
 - job: buildJob
   steps:
   - task: DotNetCoreCLI@2
+    displayName: Build
     inputs:
       command: 'build'
       projects: '**/*.csproj'
 
   - task: DotNetCoreCLI@2
+    displayName: Publish 
     inputs:
       command: 'publish'
       publishWebProjects: true
@@ -39,14 +46,16 @@ jobs:
       buildType: 'current'
       artifactName: 'code'
       targetPath: '$(Pipeline.Workspace)'
-  - task: AzureRmWebAppDeployment@5
-    inputs:
-      ConnectionType: 'AzureRM'
-      azureSubscription: 'AZD-RWD-DEV7'
-      appType: 'webAppLinux'
-      WebAppName: 'demo-slot'
-      deployToSlotOrASE: true
-      ResourceGroupName: 'DEVRWDWEBRG7401'
-      SlotName: 'staging'
-      packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
-      DeploymentTypeLinux: 'oneDeploy'
+
+  - ${{ if eq(parameters.deployToSlot,'true') }}:
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'AZD-RWD-DEV7'
+        appType: 'webAppLinux'
+        WebAppName: 'demo-slot'
+        deployToSlotOrASE: true
+        ResourceGroupName: 'DEVRWDWEBRG7401'
+        SlotName: 'staging'
+        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
+        DeploymentTypeLinux: 'oneDeploy'
