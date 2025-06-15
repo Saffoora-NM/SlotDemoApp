@@ -47,9 +47,9 @@ jobs:
       artifactName: 'code'
       targetPath: '$(Pipeline.Workspace)'
 
-  - ${{ if eq(parameters.deployToSlot,'true') }}:
-    - task: AzureRmWebAppDeployment@5
-      inputs:
+  - task: AzureRmWebAppDeployment@5
+    condition: eq('${{ parameters.deployToSlot }}', true) 
+    inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: 'AZD-RWD-DEV7'
         appType: 'webAppLinux'
@@ -61,9 +61,9 @@ jobs:
         DeploymentTypeLinux: 'oneDeploy'
 
 
-  - ${{ elseif eq(parameters.deployToSlot,'false') }}: 
-    - task: AzureRmWebAppDeployment@5
-      inputs:
+  - task: AzureRmWebAppDeployment@5
+    condition: eq('${{ parameters.deployToSlot }}', false) 
+    inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: 'AZD-RWD-DEV7'
         appType: 'webAppLinux'
