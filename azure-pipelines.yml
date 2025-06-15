@@ -40,7 +40,7 @@ jobs:
 - job: deployJob
   dependsOn: buildJob
   steps:
-  
+  - checkout: none
   - task: DownloadPipelineArtifact@2
     inputs:
       buildType: 'current'
@@ -57,5 +57,16 @@ jobs:
         deployToSlotOrASE: true
         ResourceGroupName: 'DEVRWDWEBRG7401'
         SlotName: 'staging'
+        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
+        DeploymentTypeLinux: 'oneDeploy'
+
+
+  - ${{ elseif eq(parameters.deployToSlot,'false') }}: 
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'AZD-RWD-DEV7'
+        appType: 'webAppLinux'
+        WebAppName: 'demo-slot'
         packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
         DeploymentTypeLinux: 'oneDeploy'
