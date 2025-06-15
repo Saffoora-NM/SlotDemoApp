@@ -21,6 +21,13 @@ jobs:
     inputs:
       command: 'publish'
       publishWebProjects: true
+      arguments: '-c Release -o $(Pipeline.Workspace)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Pipeline.Workspace)'
+      artifact: 'code'
+      publishLocation: 'pipeline'
 
   - task: DownloadPipelineArtifact@2
     inputs:
