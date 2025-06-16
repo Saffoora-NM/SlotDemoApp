@@ -48,6 +48,18 @@ jobs:
       targetPath: '$(Pipeline.Workspace)'
 
   - task: AzureRmWebAppDeployment@5
+    displayName: 'Deploy to main app service'
+    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, false) }})
+    inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'AZD-RWD-DEV7'
+        appType: 'webAppLinux'
+        WebAppName: 'slotdemoapp'
+        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
+        DeploymentTypeLinux: 'oneDeploy'
+  
+  - task: AzureRmWebAppDeployment@5
+    displayName: 'Deploy to App Service Slot'
     condition: and(succeeded(), ${{ eq(parameters.deployToSlot, true) }})
     inputs:
         ConnectionType: 'AzureRM'
@@ -57,16 +69,5 @@ jobs:
         deployToSlotOrASE: true
         ResourceGroupName: 'slotdemoapp_group'
         SlotName: 'staging'
-        packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
-        DeploymentTypeLinux: 'oneDeploy'
-
-
-  - task: AzureRmWebAppDeployment@5
-    condition: and(succeeded(), ${{ eq(parameters.deployToSlot, false) }})
-    inputs:
-        ConnectionType: 'AzureRM'
-        azureSubscription: 'AZD-RWD-DEV7'
-        appType: 'webAppLinux'
-        WebAppName: 'slotdemoapp'
         packageForLinux: '$(Pipeline.Workspace)/**/*.zip'
         DeploymentTypeLinux: 'oneDeploy'
